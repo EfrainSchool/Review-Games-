@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kahoot!</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#46178f;min-height:100vh;color:#fff;}
+#lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.k-logo{font-size:52px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;}
+.k-logo span{color:#ff3355;}
+.pin-card{background:#fff;border-radius:16px;padding:36px 44px;min-width:340px;text-align:center;margin-top:10px;}
+.pin-card h2{color:#222;font-size:17px;font-weight:700;margin-bottom:18px;}
+.pin-input{width:100%;padding:14px;font-size:26px;font-weight:800;text-align:center;border:2.5px solid #ddd;border-radius:10px;color:#222;letter-spacing:10px;outline:none;transition:border 0.2s;}
+.pin-input:focus{border-color:#46178f;}
+.pin-btn{width:100%;margin-top:14px;padding:15px;background:#46178f;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;transition:background 0.15s;}
+.pin-btn:hover{background:#3a1272;}
+.err-msg{color:#e74c3c;font-size:13px;margin-top:10px;min-height:18px;}
+.divider{color:#aaa;font-size:13px;margin:12px 0;}
+.host-link{color:#46178f;font-size:14px;font-weight:700;cursor:pointer;text-decoration:underline;}
+#app{display:none;flex-direction:row;min-height:100vh;background:#1a1a2e;}
+#sidebar{width:210px;background:#16213e;flex-shrink:0;display:flex;flex-direction:column;}
+.sb-logo{padding:16px 18px 14px;border-bottom:1px solid #0f3460;}
+.sb-logo-txt{font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+.sb-logo-txt span{color:#ff3355;}
+.sb-section{padding:10px 0 4px 18px;font-size:10px;font-weight:700;color:#4a5568;letter-spacing:1.2px;text-transform:uppercase;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:14px;color:#a0aec0;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;}
+.sb-item:hover,.sb-item.active{background:#0f3460;color:#fff;border-left-color:#ff3355;}
+.sb-item svg{width:18px;height:18px;flex-shrink:0;}
+.sb-badge{margin-left:auto;background:#ff3355;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{background:#16213e;border-bottom:1px solid #0f3460;padding:10px 20px;display:flex;align-items:center;gap:12px;}
+.search-wrap{flex:1;max-width:380px;position:relative;}
+.search-wrap input{width:100%;background:#0f3460;border:1px solid #2d3748;border-radius:8px;padding:8px 12px 8px 36px;color:#fff;font-size:14px;outline:none;}
+.search-wrap input::placeholder{color:#4a5568;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#4a5568;width:16px;height:16px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.avatar{width:32px;height:32px;border-radius:50%;background:#ff3355;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+#content{flex:1;overflow-y:auto;padding:20px;}
+.hero{background:#0f3460;border-radius:14px;padding:28px;margin-bottom:22px;display:flex;align-items:center;gap:20px;}
+.hero-text h1{font-size:22px;font-weight:800;margin-bottom:6px;}
+.hero-text p{font-size:13px;color:#a0aec0;max-width:340px;line-height:1.5;}
+.hero-btns{display:flex;gap:10px;margin-top:16px;}
+.btn-primary{background:#ff3355;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-primary:hover{background:#e02040;}
+.btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;}
+.hero-icon{font-size:64px;flex-shrink:0;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-hdr h2{font-size:16px;font-weight:800;}
+.see-all{font-size:13px;color:#a0aec0;cursor:pointer;}
+.cat-row{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.cat-pill{background:#0f3460;border:1px solid #2d3748;border-radius:99px;padding:6px 14px;font-size:12px;font-weight:600;color:#a0aec0;cursor:pointer;transition:all 0.15s;}
+.cat-pill:hover,.cat-pill.active{background:#ff3355;border-color:#ff3355;color:#fff;}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.game-card{background:#16213e;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform 0.15s;border:1px solid #0f3460;}
+.game-card:hover{transform:translateY(-3px);border-color:#ff3355;}
+.game-thumb{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;}
+.game-thumb.t1{background:#1a0533;}
+.game-thumb.t2{background:#002d20;}
+.game-thumb.t3{background:#1a1a00;}
+.game-thumb.t4{background:#1a0000;}
+.game-thumb.t5{background:#001a33;}
+.game-thumb.t6{background:#0a001a;}
+.game-badge{position:absolute;top:6px;left:6px;background:#ff3355;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.game-badge.hot{background:#ff6b00;}
+.game-info{padding:9px 10px 10px;}
+.game-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.game-cat{font-size:11px;color:#4a5568;}
+.game-rating{font-size:11px;color:#f6c90e;margin-top:3px;}
+#game-overlay{display:none;flex-direction:column;min-height:100vh;background:#1a1a2e;}
+#go-topbar{background:#16213e;border-bottom:1px solid #0f3460;padding:10px 16px;display:flex;align-items:center;gap:14px;}
+.go-logo{font-size:18px;font-weight:900;}
+.go-logo span{color:#ff3355;}
+.go-title{font-size:14px;color:#a0aec0;flex:1;}
+.go-exit{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:6px 14px;border-radius:7px;font-size:13px;cursor:pointer;font-weight:600;}
+.go-exit:hover{background:rgba(255,255,255,0.15);}
+#go-frame{flex:1;border:none;width:100%;height:calc(100vh - 52px);}
+</style>
+</head>
+<body>
+
+<div id="lobby">
+  <div class="k-logo">kahoot<span>!</span></div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:28px;">You need a game PIN to join</div>
+  <div class="pin-card">
+    <h2>Game PIN</h2>
+    <input class="pin-input" id="pinInput" type="tel" maxlength="6" placeholder="0 0 0 0" />
+    <div class="err-msg" id="errMsg"></div>
+    <button class="pin-btn" id="enterBtn">Enter</button>
+    <div class="divider">— or —</div>
+    <span class="host-link" onclick="unlockApp()">Host a game</span>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sb-logo"><span class="sb-logo-txt">kahoot<span>!</span></span></div>
+    <div class="sb-section">Menu</div>
+    <div class="sb-item active" onclick="filterCat('all',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      All games
+    </div>
+    <div class="sb-item" onclick="filterCat('new',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      New <span class="sb-badge">8</span>
+    </div>
+    <div class="sb-item" onclick="filterCat('hot',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 6-6 8-6 14a6 6 0 0 0 12 0c0-6-6-8-6-14z"/></svg>
+      Hot right now
+    </div>
+    <div class="sb-section">Categories</div>
+    <div class="sb-item" onclick="filterCat('action',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Action
+    </div>
+    <div class="sb-item" onclick="filterCat('io',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+      .io games
+    </div>
+    <div class="sb-item" onclick="filterCat('puzzle',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      Puzzle
+    </div>
+    <div class="sb-item" onclick="filterCat('sports',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      Sports
+    </div>
+    <div class="sb-item" onclick="filterCat('shooting',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2V12.46L22 3z"/></svg>
+      Shooting
+    </div>
+    <div class="sb-item" onclick="filterCat('racing',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Racing
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search games..." id="searchInput" />
+      </div>
+      <div class="topbar-right">
+        <div class="avatar">K</div>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="hero">
+        <div class="hero-icon">🎮</div>
+        <div class="hero-text">
+          <h1>Play 100+ free games instantly</h1>
+          <p>No downloads, no installs. Jump straight into the action with the best browser games around.</p>
+          <div class="hero-btns">
+            <button class="btn-primary" onclick="openGame('https://www.coolmathgames.com','Cool Math Games')">Play now</button>
+            <button class="btn-ghost">Browse all</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-pill active" onclick="pillFilter('all',this)">All</div>
+        <div class="cat-pill" onclick="pillFilter('action',this)">Action</div>
+        <div class="cat-pill" onclick="pillFilter('io',this)">.io</div>
+        <div class="cat-pill" onclick="pillFilter('puzzle',this)">Puzzle</div>
+        <div class="cat-pill" onclick="pillFilter('sports',this)">Sports</div>
+        <div class="cat-pill" onclick="pillFilter('shooting',this)">Shooting</div>
+        <div class="cat-pill" onclick="pillFilter('racing',this)">Racing</div>
+      </div>
+
+      <div class="section-hdr"><h2>🔥 Hot right now</h2><span class="see-all">See all</span></div>
+      <div class="games-grid" id="gamesGrid"></div>
+
+      <div class="section-hdr"><h2>⭐ Top picks</h2><span class="see-all">See all</span></div>
+      <div class="games-grid" id="topGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div id="game-overlay">
+  <div id="go-topbar">
+    <span class="go-logo">kahoot<span>!</span></span>
+    <span class="go-title" id="go-title">Game</span>
+    <button class="go-exit" onclick="exitGame()">✕ Exit</button>
+  </div>
+  <iframe id="go-frame" src="" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"></iframe>
+</div>
+
+<script>
+const GAMES=[
+  {name:'Slither.io',cat:'io',url:'https://slither.io',emoji:'🐍',theme:'t1',badge:'HOT',rating:'★★★★★'},
+  {name:'Agar.io',cat:'io',url:'https://agar.io',emoji:'🟢',theme:'t2',badge:'HOT',rating:'★★★★★'},
+  {name:'1v1.LOL',cat:'shooting',url:'https://1v1.lol',emoji:'🏗️',theme:'t1',badge:'NEW',rating:'★★★★☆'},
+  {name:'Shell Shockers',cat:'shooting',url:'https://shellshock.io',emoji:'🥚',theme:'t4',badge:'HOT',rating:'★★★★★'},
+  {name:'Krunker.io',cat:'shooting',url:'https://krunker.io',emoji:'🎯',theme:'t5',badge:'',rating:'★★★★☆'},
+  {name:'Cool Math Games',cat:'puzzle',url:'https://www.coolmathgames.com',emoji:'➕',theme:'t3',badge:'',rating:'★★★★★'},
+  {name:'Skribbl.io',cat:'puzzle',url:'https://skribbl.io',emoji:'🎨',theme:'t6',badge:'NEW',rating:'★★★★☆'},
+  {name:'GeoGuessr',cat:'puzzle',url:'https://www.geoguessr.com',emoji:'🌍',theme:'t2',badge:'',rating:'★★★★★'},
+  {name:'Smash Karts',cat:'racing',url:'https://smashkarts.io',emoji:'🏎️',theme:'t3',badge:'NEW',rating:'★★★★☆'},
+  {name:'Narrow.One',cat:'action',url:'https://narrow.one',emoji:'🏹',theme:'t1',badge:'',rating:'★★★★★'},
+  {name:'Venge.io',cat:'shooting',url:'https://venge.io',emoji:'🔫',theme:'t4',badge:'HOT',rating:'★★★★☆'},
+  {name:'Snake.io',cat:'io',url:'https://snake.io',emoji:'🐍',theme:'t2',badge:'',rating:'★★★★☆'},
+  {name:'Wormate.io',cat:'io',url:'https://wormate.io',emoji:'🐛',theme:'t2',badge:'NEW',rating:'★★★★☆'},
+  {name:'Paper.io',cat:'io',url:'https://paper-io.com',emoji:'📄',theme:'t5',badge:'',rating:'★★★☆☆'},
+  {name:'Moto X3M',cat:'racing',url:'https://www.coolmathgames.com/0-moto-x3m',emoji:'🏍️',theme:'t3',badge:'HOT',rating:'★★★★★'},
+  {name:'Drift Hunters',cat:'racing',url:'https://drifthunters.io',emoji:'🚗',theme:'t4',badge:'',rating:'★★★★☆'},
+];
+
+function renderGrid(id, list){
+  const g=document.getElementById(id);
+  g.innerHTML='';
+  list.forEach(game=>{
+    const card=document.createElement('div');
+    card.className='game-card';
+    card.onclick=()=>openGame(game.url,game.name);
+    card.innerHTML=`<div class="game-thumb ${game.theme}">${game.emoji}${game.badge?`<span class="game-badge ${game.badge==='HOT'?'hot':''}">${game.badge}</span>`:''}</div><div class="game-info"><div class="game-name">${game.name}</div><div class="game-cat">${game.cat.toUpperCase()}</div><div class="game-rating">${game.rating}</div></div>`;
+    g.appendChild(card);
+  });
+}
+
+function filterCat(cat, el){
+  document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  const list=cat==='all'?GAMES:cat==='new'?GAMES.filter(g=>g.badge==='NEW'):cat==='hot'?GAMES.filter(g=>g.badge==='HOT'):GAMES.filter(g=>g.cat===cat);
+  renderGrid('gamesGrid',list);
+  renderGrid('topGrid',[...list].reverse().slice(0,6));
+}
+
+function pillFilter(cat, el){
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  const list=cat==='all'?GAMES:GAMES.filter(g=>g.cat===cat);
+  renderGrid('gamesGrid',list);
+}
+
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.toLowerCase();
+  const list=q?GAMES.filter(g=>g.name.toLowerCase().includes(q)):GAMES;
+  renderGrid('gamesGrid',list);
+});
+
+function openGame(url,name){
+  document.getElementById('app').style.display='none';
+  document.getElementById('game-overlay').style.display='flex';
+  document.getElementById('go-title').textContent=name;
+  document.getElementById('go-frame').src=url;
+}
+
+function exitGame(){
+  document.getElementById('go-frame').src='';
+  document.getElementById('game-overlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+}
+
+function unlockApp(){showApp();}
+
+function showApp(){
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('app').style.display='flex';
+  renderGrid('gamesGrid',GAMES.slice(0,8));
+  renderGrid('topGrid',[...GAMES].sort(()=>Math.random()-0.5).slice(0,8));
+}
+
+const pinInput=document.getElementById('pinInput');
+const errMsg=document.getElementById('errMsg');
+document.getElementById('enterBtn').addEventListener('click',checkPin);
+pinInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkPin();});
+
+function checkPin(){
+  const v=pinInput.value.replace(/\s/g,'');
+  if(v==='0000'){
+    errMsg.textContent='';
+    showApp();
+  } else {
+    errMsg.textContent='Game not found. Check the PIN and try again.';
+    pinInput.style.borderColor='#e74c3c';
+    setTimeout(()=>{pinInput.style.borderColor='#ddd';},1500);
+  }
+}
+</script>
+</body>
+</html>
